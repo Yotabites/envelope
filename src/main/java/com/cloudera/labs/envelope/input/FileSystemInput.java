@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.databricks.spark.avro.*;
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -85,6 +86,8 @@ public class FileSystemInput implements BatchInput {
   public static final String JSON_FORMAT = "json";
   public static final String INPUT_FORMAT_FORMAT = "input-format";
   public static final String TEXT_FORMAT = "text";
+  public static final String AVRO_FORMAT = "avro";
+  
 
   private Config config;
   private ConfigUtils.OptionMap options;
@@ -216,6 +219,9 @@ public class FileSystemInput implements BatchInput {
       case TEXT_FORMAT:
         fs = readText(path);
         break;
+      case AVRO_FORMAT:
+    	  fs= readAVRO(path);
+      
       default:
         throw new RuntimeException("Filesystem input format not supported: " + format);
     }
@@ -238,6 +244,14 @@ public class FileSystemInput implements BatchInput {
       return Contexts.getSparkSession().read().json(path);
     }
   }
+  
+  private Dataset<Row> readAVRO(String path) {
+	    LOG.debug("Reading AVRO: {}", path);
+
+	   
+	      return Contexts.getSparkSession().read().format("com.databricks.spark.avro").options(options).load(path);
+	    
+	  }
   
   private Dataset<Row> readCSV(String path) {
     LOG.debug("Reading CSV: {}", path);
